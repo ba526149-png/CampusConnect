@@ -4,6 +4,7 @@ class UserModel {
   final String correo;
   final String rol;
   final String fechaRegistro;
+  final String? fotoUrl;
 
   UserModel({
     required this.idUsuario,
@@ -11,6 +12,7 @@ class UserModel {
     required this.correo,
     required this.rol,
     required this.fechaRegistro,
+    this.fotoUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -20,6 +22,7 @@ class UserModel {
       'correo': correo,
       'rol': rol,
       'fecha_registro': fechaRegistro,
+      'foto_url': fotoUrl,
     };
   }
 
@@ -30,6 +33,7 @@ class UserModel {
       correo: map['correo'] ?? '',
       rol: map['rol'] ?? 'estudiante',
       fechaRegistro: map['fecha_registro'] ?? '',
+      fotoUrl: map['foto_url'],
     );
   }
 }
