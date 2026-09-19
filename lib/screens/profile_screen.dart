@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 // Importaciones locales
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import 'feed_screen.dart'; // Importación agregada
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -44,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 50, // Calidad comprimida para almacenamiento directo en Firestore
+      imageQuality: 50,
     );
 
     if (pickedFile != null) {
@@ -71,14 +72,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         fotoUrl: photoUrl,
       );
 
-      await _loadUserData();
+      await _userService.marcarPerfilComoConfigurado();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Perfil actualizado correctamente'),
+            content: Text('¡Perfil guardado con éxito! Bienvenido a CampusConnect.'),
             backgroundColor: Colors.green,
           ),
+        );
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const FeedScreen()),
         );
       }
     } catch (e) {
@@ -101,7 +106,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Decodificación inteligente: soporta memoria local, Base64 o URL
     ImageProvider? avatarImage;
     if (_selectedImageBytes != null) {
       avatarImage = MemoryImage(_selectedImageBytes!);

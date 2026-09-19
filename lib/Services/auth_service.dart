@@ -20,23 +20,42 @@ class UserService {
     return null;
   }
 
-  // Convierte los bytes a texto Base64 para guardarlo directamente en Firestore
+  // Convierte los bytes a texto Base64 para guardarlo en Firestore
   Future<String> uploadProfileImage(Uint8List imageBytes) async {
     String base64Image = base64Encode(imageBytes);
     return 'data:image/jpeg;base64,$base64Image';
   }
 
-  // Actualizar nombre y/o foto del perfil en Firestore
+  // Actualizar o crear perfil de usuario de forma segura con merge: true
   Future<void> updateProfile({required String nombre, String? fotoUrl}) async {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    Map<String, dynamic> data = {'nombre': nombre};
+    Map<String, dynamic> data = {
+      'id_usuario': user.uid,
+      'nombre': nombre,
+      'correo': user.email ?? '',
+    };
+    
     if (fotoUrl != null) {
       data['foto_url'] = fotoUrl;
     }
 
-    await _db.collection('usuarios').doc(user.uid).update(data);
+    await _db
+        .collection('usuarios')
+        .doc(user.uid)
+        .set(data, SetOptions(merge: true));
+  }
+
+  // Marcar perfil como configurado de forma segura
+  Future<void> marcarPerfilComoConfigurado() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await _db
+        .collection('usuarios')
+        .doc(user.uid)
+        .set({'perfil_configurado': true}, SetOptions(merge: true));
   }
 }
 
@@ -67,7 +86,8 @@ class AuthService {
         'rol': 'estudiante',
         'fecha_registro': DateTime.now().toIso8601String(),
         'foto_url': null,
-      });
+        'perfil_configurado': false,
+      }, SetOptions(merge: true));
     }
 
     return result;
@@ -93,12 +113,30 @@ class AuthService {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    Map<String, dynamic> data = {'nombre': nombre};
+    Map<String, dynamic> data = {
+      'id_usuario': user.uid,
+      'nombre': nombre,
+      'correo': user.email ?? '',
+    };
+    
     if (fotoUrl != null) {
       data['foto_url'] = fotoUrl;
     }
 
-    await _db.collection('usuarios').doc(user.uid).update(data);
+    await _db
+        .collection('usuarios')
+        .doc(user.uid)
+        .set(data, SetOptions(merge: true));
+  }
+
+  Future<void> marcarPerfilComoConfigurado() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await _db
+        .collection('usuarios')
+        .doc(user.uid)
+        .set({'perfil_configurado': true}, SetOptions(merge: true));
   }
 
   Future<void> signOut() async {
